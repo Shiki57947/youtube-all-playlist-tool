@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <title>YouTubeプレイリスト生成</title>
 
-<link rel="manifest" href="manifest.json">
-
 <style>
 body{
 font-family:sans-serif;
@@ -17,10 +15,6 @@ background:#f5f5f5;
 .container{
 max-width:500px;
 margin:auto;
-}
-
-h2{
-margin-bottom:20px;
 }
 
 input{
@@ -39,32 +33,17 @@ font-size:18px;
 border:none;
 border-radius:10px;
 margin-top:10px;
-cursor:pointer;
 }
 
-.generate{
-background:#ff0000;
-color:white;
-}
-
-.open{
-background:#4CAF50;
-color:white;
-}
-
-.copy{
-background:#333;
-color:white;
-}
+.generate{background:#ff0000;color:white;}
+.open{background:#4CAF50;color:white;}
+.copy{background:#333;color:white;}
 
 #result{
 margin-top:20px;
 word-break:break-all;
-font-size:14px;
 }
-
 </style>
-
 </head>
 
 <body>
@@ -76,9 +55,7 @@ font-size:14px;
 <input id="input" placeholder="チャンネルURL or ID">
 
 <button class="generate" onclick="generate()">生成する</button>
-
 <button class="open" onclick="openYoutube()">YouTubeで開く</button>
-
 <button class="copy" onclick="copyUrl()">URLコピー</button>
 
 <div id="result"></div>
@@ -94,11 +71,40 @@ const match=text.match(/UC[\w-]+/)
 return match ? match[0] : null
 }
 
-function generate(){
+// 🔥 @リンク対応
+async function fetchChannelId(url){
 
-const input=document.getElementById("input").value.trim()
+try{
+const res = await fetch(url)
+const html = await res.text()
 
-const channelId=extractChannelId(input)
+const match = html.match(/"channelId":"(UC[\w-]+)"/)
+
+return match ? match[1] : null
+
+}catch{
+return null
+}
+
+}
+
+async function generate(){
+
+let input=document.getElementById("input").value.trim()
+
+let channelId=extractChannelId(input)
+
+// ① UCがあればそれ使う
+if(!channelId){
+
+// ② @リンクの場合は取得
+if(input.includes("@")){
+
+channelId = await fetchChannelId(input)
+
+}
+
+}
 
 if(!channelId){
 alert("チャンネルIDが見つかりません")
@@ -114,27 +120,14 @@ document.getElementById("result").innerText=generatedUrl
 }
 
 function openYoutube(){
-
-if(!generatedUrl){
-alert("先に生成してください")
-return
-}
-
+if(!generatedUrl){ alert("先に生成してください"); return }
 window.location.href=generatedUrl
-
 }
 
 function copyUrl(){
-
-if(!generatedUrl){
-alert("先に生成してください")
-return
-}
-
+if(!generatedUrl){ alert("先に生成してください"); return }
 navigator.clipboard.writeText(generatedUrl)
-
 alert("コピーしました！")
-
 }
 
 </script>
